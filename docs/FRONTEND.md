@@ -83,7 +83,9 @@ first on withdraw (`state/poolMath.ts`).
 
 When the rails are live, replace those optimistic updates with refreshes from the rails responses:
 `WALLET_CONNECTED` already takes the balance from `wallet.getUsdcBalanceCents`, and `POOL_SNAPSHOT`
-already adopts `getPool()` when nothing has moved locally.
+already adopts pool-wide TVL and open-stub counts from `getPool()` whenever the House pool screen opens
+(the mock tracks those across premiums, payouts, deposits and withdrawals). The caller's principal and
+earned share are the remaining store-owned numbers to move over once the rails expose an LP position.
 
 ### Flipping to live
 

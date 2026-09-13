@@ -184,14 +184,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
     [rails, stateRef],
   );
 
+  /** Pool-wide numbers (TVL, open stubs) come from the rails; the caller's position stays in the store during the demo. */
   const refreshPool = useCallback(async () => {
     try {
       const snapshot = await rails.api.getPool(stateRef.current.wallet.address ?? undefined);
-      // Demo bookkeeping lives in the store; only adopt the rails numbers when nothing moved yet.
-      const { pool } = stateRef.current;
-      if (pool.depositUsd === 0 && pool.slip === null) {
-        dispatch({ type: "POOL_SNAPSHOT", tvlUsd: centsToUsd(snapshot.tvlCents), openStubs: snapshot.openStubs });
-      }
+      dispatch({ type: "POOL_SNAPSHOT", tvlUsd: centsToUsd(snapshot.tvlCents), openStubs: snapshot.openStubs });
     } catch (error) {
       console.error("[late-gate] pool snapshot failed", error);
     }

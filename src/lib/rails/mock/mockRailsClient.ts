@@ -77,6 +77,9 @@ export class MockRailsClient implements RailsClient {
   private nextTicketNumber = DEMO_TICKET_NUMBER_START;
   private openPolicies: Policy[] = [];
   private remainingByFlightKey = new Map<string, number>();
+  /** House pool: premiums flow in, payouts and withdrawals flow out. */
+  private poolTvlCents = usdToCents(DEMO_POOL_TVL_USDC);
+  private poolOpenStubs = DEMO_POOL_OPEN_STUBS;
 
   async getQuote(request: QuoteRequest): Promise<QuoteResult> {
     await sleep(MOCK_LATENCY_MS);
@@ -168,6 +171,8 @@ export class MockRailsClient implements RailsClient {
     this.openPolicies.push(policy);
     const remaining = this.remainingByFlightKey.get(request.flightKey) ?? DEMO_INITIAL_INVENTORY;
     this.remainingByFlightKey.set(request.flightKey, Math.max(0, remaining - 1));
+    this.poolTvlCents += premiumCents;
+    this.poolOpenStubs += 1;
     return {
       ok: true,
       policy,
@@ -187,15 +192,23 @@ export class MockRailsClient implements RailsClient {
       observedDelayMinutes: DEMO_LATE_MINUTES,
     }));
     const scanned = this.openPolicies.length;
+    for (const policy of this.openPolicies) {
+      this.poolTvlCents -= policy.payoutCents;
+      this.poolOpenStubs = Math.max(0, this.poolOpenStubs - 1);
+    }
     this.openPolicies = [];
     return { ok: true, scanned, settled, skipped: 0 };
   }
 
+  /**
+   * TVL and open stubs are tracked here; the caller's principal and earned
+   * share stay in the UI store for the demo (no LP ledger in the mock).
+   */
   async getPool(): Promise<PoolSnapshot> {
     await sleep(MOCK_LATENCY_MS);
     return {
-      tvlCents: usdToCents(DEMO_POOL_TVL_USDC),
-      openStubs: DEMO_POOL_OPEN_STUBS,
+      tvlCents: this.poolTvlCents,
+      openStubs: this.poolOpenStubs,
       depositCents: 0,
       earnedCents: 0,
     };
@@ -204,12 +217,14 @@ export class MockRailsClient implements RailsClient {
   async lpDeposit(request: LpDepositRequest): Promise<UsdcResult> {
     await sleep(MOCK_LATENCY_MS * 3);
     if (request.amountCents <= 0) return { ok: false, op: "lpDeposit", error: "INVALID_AMOUNT", reason: "Amount must be positive." };
+    this.poolTvlCents += request.amountCents;
     return this.receipt("lpDeposit", request.from, MOCK_VAULT_ADDRESS, request.amountCents, request.txHash);
   }
 
   async lpWithdraw(request: LpWithdrawRequest): Promise<UsdcResult> {
     await sleep(MOCK_LATENCY_MS * 3);
     if (request.amountCents <= 0) return { ok: false, op: "lpWithdraw", error: "INVALID_AMOUNT", reason: "Amount must be positive." };
+    this.poolTvlCents -= request.amountCents;
     return this.receipt("lpWithdraw", MOCK_VAULT_ADDRESS, request.to, request.amountCents);
   }
 

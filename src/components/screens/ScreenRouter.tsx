@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import { useApp } from "@/state/AppProvider";
 import type { Screen } from "@/state/types";
 import { AirlineScreen } from "./AirlineScreen";
@@ -35,9 +36,18 @@ const SCREENS: Record<Screen, () => React.ReactNode> = {
   poolSlip: PoolSlipScreen,
 };
 
-/** Swaps screens in place. Keyed so each mount replays its entrance animation. */
+/**
+ * Swaps screens in place. Keyed so each mount replays its entrance animation.
+ * Scroll resets on every change so a tall screen (Paid, Airline) never leaves
+ * the next one opened mid-page.
+ */
 export function ScreenRouter() {
   const { state } = useApp();
   const Current = SCREENS[state.screen];
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+  }, [state.screen]);
+
   return <Current key={state.screen} />;
 }
