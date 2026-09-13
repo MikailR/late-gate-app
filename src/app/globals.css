@@ -1,0 +1,380 @@
+@import "tailwindcss";
+
+/*
+ * Receipt v2 visual system (Proto 3).
+ * Tokens are exposed to Tailwind through @theme so utilities like
+ * `bg-gate`, `text-muted`, `border-rule` and `font-mono` resolve to these values.
+ */
+@theme {
+  --color-ink: #1a1a1a;
+  --color-gate: #1f4fbf;
+  --color-paper: #ffffff;
+  --color-phone: #f1efea;
+  --color-stamp: #b3382b;
+  --color-muted: #6e6c66;
+  --color-body: #3a3937;
+  --color-line: #e6e4de;
+  --color-rule: #d6d3cb;
+  --color-cream: #eceae4;
+  --color-wash: #e8edfa;
+  --color-faint: #9a978f;
+  --color-placeholder: #c4c1b9;
+  --color-hover-paper: #fcfbf8;
+  --color-hover-line: #b9b5ac;
+
+  --font-sans: var(--font-libre-franklin), "Libre Franklin", Helvetica, Arial, sans-serif;
+  --font-mono: var(--font-courier-prime), "Courier Prime", "Courier New", monospace;
+
+  --ease-stamp: cubic-bezier(0.2, 0.8, 0.3, 1);
+
+  --animate-screen-in: screen-in 0.3s ease-out both;
+  --animate-row-print: row-print 0.25s ease-out both;
+  --animate-sheet-up: sheet-up 0.28s cubic-bezier(0.2, 0.8, 0.3, 1) both;
+  --animate-pop: pop 0.3s cubic-bezier(0.2, 0.8, 0.3, 1) both;
+  --animate-tick: tick 0.3s ease-out both;
+  --animate-ring: ring 0.8s ease-out both;
+
+  @keyframes screen-in {
+    from {
+      opacity: 0;
+      transform: translateY(14px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+  @keyframes row-print {
+    from {
+      opacity: 0;
+      transform: translateY(-8px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+  @keyframes sheet-up {
+    from {
+      transform: translateY(100%);
+    }
+    to {
+      transform: none;
+    }
+  }
+  @keyframes pop {
+    0% {
+      transform: scale(0.6);
+      opacity: 0;
+    }
+    100% {
+      transform: scale(1);
+      opacity: 1;
+    }
+  }
+  @keyframes tick {
+    from {
+      opacity: 0.2;
+      transform: translateY(-8px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+  @keyframes ring {
+    from {
+      stroke-dashoffset: 816;
+    }
+    to {
+      stroke-dashoffset: 0;
+    }
+  }
+}
+
+/* Receipt print: the paper feeds out from the top edge. */
+@keyframes print {
+  from {
+    mask-size: 100% 0%;
+    -webkit-mask-size: 100% 0%;
+    transform: translateY(-20px);
+  }
+  to {
+    mask-size: 100% 100%;
+    -webkit-mask-size: 100% 100%;
+    transform: none;
+  }
+}
+/* Rubber stamp landing on the paper. Centered variant keeps translateX(-50%). */
+@keyframes stamp-drop {
+  0% {
+    opacity: 0;
+    transform: rotate(-4deg) scale(2.4);
+  }
+  55% {
+    opacity: 1;
+    transform: rotate(-4deg) scale(0.94);
+  }
+  100% {
+    transform: rotate(-4deg) scale(1);
+  }
+}
+@keyframes stamp-center {
+  0% {
+    opacity: 0;
+    transform: translateX(-50%) rotate(-7deg) scale(2.4);
+  }
+  55% {
+    opacity: 1;
+    transform: translateX(-50%) rotate(-7deg) scale(0.94);
+  }
+  100% {
+    transform: translateX(-50%) rotate(-7deg) scale(1);
+  }
+}
+
+html {
+  height: 100%;
+  background: var(--color-line);
+}
+
+body {
+  margin: 0;
+  min-height: 100%;
+  color: var(--color-ink);
+  background: var(--color-line);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior-y: none;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+}
+
+@layer components {
+  /* Receipt card with a torn (serrated) bottom edge. */
+  .serrated {
+    clip-path: polygon(
+      0 0,
+      100% 0,
+      100% calc(100% - 8px),
+      97.5% 100%,
+      95% calc(100% - 8px),
+      92.5% 100%,
+      90% calc(100% - 8px),
+      87.5% 100%,
+      85% calc(100% - 8px),
+      82.5% 100%,
+      80% calc(100% - 8px),
+      77.5% 100%,
+      75% calc(100% - 8px),
+      72.5% 100%,
+      70% calc(100% - 8px),
+      67.5% 100%,
+      65% calc(100% - 8px),
+      62.5% 100%,
+      60% calc(100% - 8px),
+      57.5% 100%,
+      55% calc(100% - 8px),
+      52.5% 100%,
+      50% calc(100% - 8px),
+      47.5% 100%,
+      45% calc(100% - 8px),
+      42.5% 100%,
+      40% calc(100% - 8px),
+      37.5% 100%,
+      35% calc(100% - 8px),
+      32.5% 100%,
+      30% calc(100% - 8px),
+      27.5% 100%,
+      25% calc(100% - 8px),
+      22.5% 100%,
+      20% calc(100% - 8px),
+      17.5% 100%,
+      15% calc(100% - 8px),
+      12.5% 100%,
+      10% calc(100% - 8px),
+      7.5% 100%,
+      5% calc(100% - 8px),
+      2.5% 100%,
+      0 calc(100% - 8px)
+    );
+  }
+
+  /* Apply to a card to make it feed out of the printer. Duration/delay via --print-duration/--print-delay. */
+  .print {
+    mask-image: linear-gradient(#000, #000);
+    mask-repeat: no-repeat;
+    -webkit-mask-image: linear-gradient(#000, #000);
+    -webkit-mask-repeat: no-repeat;
+    animation: print var(--print-duration, 0.7s) var(--ease-stamp) var(--print-delay, 0.05s) both;
+  }
+
+  .stamp-drop {
+    animation: stamp-drop 0.35s var(--ease-stamp) var(--stamp-delay, 1s) both;
+  }
+  .stamp-center {
+    animation: stamp-center 0.4s var(--ease-stamp) var(--stamp-delay, 1.05s) both;
+  }
+
+  /* Dotted rule between receipt rows. */
+  .receipt-rule {
+    border-top: 1px dotted var(--color-ink);
+  }
+
+  /* Ticket barcode strip at the foot of a stub. */
+  .barcode {
+    height: 28px;
+    background: repeating-linear-gradient(
+      90deg,
+      var(--color-ink) 0 2px,
+      transparent 2px 5px,
+      var(--color-ink) 5px 6px,
+      transparent 6px 9px
+    );
+  }
+
+  /* Pick a stub: two halves joined only by the perforation. */
+  .stub-half-top {
+    border-radius: 14px 14px 0 0;
+    clip-path: polygon(
+      0 0,
+      100% 0,
+      100% calc(100% - 10px),
+      97% 100%,
+      94% calc(100% - 10px),
+      91% 100%,
+      88% calc(100% - 10px),
+      85% 100%,
+      82% calc(100% - 10px),
+      79% 100%,
+      76% calc(100% - 10px),
+      73% 100%,
+      70% calc(100% - 10px),
+      67% 100%,
+      64% calc(100% - 10px),
+      61% 100%,
+      58% calc(100% - 10px),
+      55% 100%,
+      52% calc(100% - 10px),
+      49% 100%,
+      46% calc(100% - 10px),
+      43% 100%,
+      40% calc(100% - 10px),
+      37% 100%,
+      34% calc(100% - 10px),
+      31% 100%,
+      28% calc(100% - 10px),
+      25% 100%,
+      22% calc(100% - 10px),
+      19% 100%,
+      16% calc(100% - 10px),
+      13% 100%,
+      10% calc(100% - 10px),
+      7% 100%,
+      4% calc(100% - 10px),
+      1% 100%,
+      0 calc(100% - 10px)
+    );
+  }
+  .stub-half-bottom {
+    border-radius: 0 0 14px 14px;
+    clip-path: polygon(
+      0 10px,
+      3% 0,
+      6% 10px,
+      9% 0,
+      12% 10px,
+      15% 0,
+      18% 10px,
+      21% 0,
+      24% 10px,
+      27% 0,
+      30% 10px,
+      33% 0,
+      36% 10px,
+      39% 0,
+      42% 10px,
+      45% 0,
+      48% 10px,
+      51% 0,
+      54% 10px,
+      57% 0,
+      60% 10px,
+      63% 0,
+      66% 10px,
+      69% 0,
+      72% 10px,
+      75% 0,
+      78% 10px,
+      81% 0,
+      84% 10px,
+      87% 0,
+      90% 10px,
+      93% 0,
+      96% 10px,
+      99% 0,
+      100% 10px,
+      100% 100%,
+      0 100%
+    );
+  }
+
+  /* Selfie viewfinder hatch. */
+  .viewfinder {
+    background: repeating-linear-gradient(135deg, #fff 0 8px, var(--color-cream) 8px 16px);
+  }
+
+  /* Section label with a trailing hairline. */
+  .section-label::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: var(--color-line);
+  }
+
+  /* Minute picker: punch notches on the dotted tear rule. */
+  .tear-rule {
+    position: relative;
+    align-self: stretch;
+    height: 1px;
+    border-top: 1px dotted currentColor;
+    margin: 8px -6px 6px;
+  }
+  .tear-rule::before,
+  .tear-rule::after {
+    content: "";
+    position: absolute;
+    top: -6px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--color-phone);
+    border: 1px solid var(--color-rule);
+  }
+  .tear-rule::before {
+    left: -7px;
+    clip-path: inset(0 0 0 50%);
+  }
+  .tear-rule::after {
+    right: -7px;
+    clip-path: inset(0 50% 0 0);
+  }
+  .tear-rule-on::before,
+  .tear-rule-on::after {
+    border-color: var(--color-gate);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-delay: 0ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
