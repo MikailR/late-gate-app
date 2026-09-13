@@ -7,6 +7,7 @@ import type {
   QuoteRequest,
   QuoteResult,
   RailsClient,
+  RpContextResult,
   TicketIssueRequest,
   TicketIssueResult,
   UsdcResult,
@@ -58,14 +59,23 @@ export class HttpRailsClient implements RailsClient {
   }
 
   /**
-   * POST /api/world/verify
-   * Forward the Sandbox IDKit result unchanged as `idkitResponse`.
-   * 200 session / 401 UNVERIFIED / 409 DUPLICATE.
+   * POST /api/world/rp-context  (no body; GET is accepted by the rails too)  [rails PR #8]
+   * 200 { ok: true, rp_context: { rp_id, nonce, created_at, expires_at, signature } }
+   * 503 missing key / rp_id, 500 sign failure. Both carry a JSON body and are returned, not thrown.
+   * The rails lock the action to late-gate-ticket and use their own NEXT_PUBLIC_WORLD_RP_ID.
+   * The result goes straight into IDKit.request as `rp_context`.
+   */
+  getRpContext(): Promise<RpContextResult> {
+    return this.request<RpContextResult>("/api/world/rp-context", { method: "POST" }, [500, 503]);
+  }
+
+  /**
+   * POST /api/world/verify  (body: { flightKey, idkitResponse })
+   * The IDKit result goes through UNCHANGED, no field remap. Empty proof = UNVERIFIED.
+   * 200 { ok, humanKey, worldSession, expiresAt, stub, preset } / 401 UNVERIFIED / 409 DUPLICATE.
    */
   verifyWorld(request: WorldVerifyRequest): Promise<WorldVerifyResult> {
-    const body: WorldVerifyRequest = { ...request };
-    if (!body.rp_id && railsEnv.worldRpId) body.rp_id = railsEnv.worldRpId;
-    return this.request<WorldVerifyResult>("/api/world/verify", { method: "POST", body: JSON.stringify(body) }, [401, 409]);
+    return this.request<WorldVerifyResult>("/api/world/verify", { method: "POST", body: JSON.stringify(request) }, [401, 409]);
   }
 
   /**

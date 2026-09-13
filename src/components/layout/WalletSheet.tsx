@@ -37,6 +37,8 @@ export function WalletSheet() {
         <ReceiptRule />
         <ReceiptRow label="ADDRESS" value={wallet.address ? truncateAddress(wallet.address, 6, 4) : ""} valueClassName="font-bold" />
         <ReceiptRow label="NETWORK" value={WALLET_NETWORK_LABEL} />
+        <ReceiptRow label="SOURCE" value={wallet.live ? "World App · MiniKit" : "Demo wallet"} tone="muted" />
+        {!wallet.live && <ReceiptRow label="LIVE WALLET" value="Open in World App" tone="muted" />}
         <ReceiptRow label="STUBS HELD" value={owned.length} tone="muted" />
         <ReceiptRule />
         <button

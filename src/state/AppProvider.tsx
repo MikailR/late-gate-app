@@ -5,7 +5,7 @@ import { useLatestRef } from "@/hooks/useLatestRef";
 import { DEMO_LATE_MINUTES } from "@/lib/config/constants";
 import { centsToUsd, usdToCents } from "@/lib/domain/pricing";
 import type { Hex } from "@/lib/domain/types";
-import { getRails, railsEnv } from "@/lib/rails";
+import { getRails, railsEnv, vaultAddress, WalletAdapterError, WorldProofError, WorldSandboxUnavailableError } from "@/lib/rails";
 import type { AppAction } from "./actions";
 import { createInitialState } from "./initialState";
 import { checkPoolAmount, poolMoveCapUsd } from "./poolMath";
@@ -13,11 +13,13 @@ import { appReducer } from "./reducer";
 import { buildCurrentStub, selectFlightKey, selectPremiumUsd, selectWalletConnected } from "./selectors";
 import type { AppState, PoolMoveKind, Screen, VerifyPath } from "./types";
 
-/** Demo vault address until LP_VAULT_ADDRESS is deployed on the rails side. */
-const DEMO_VAULT_ADDRESS: Hex = "0x000000000000000000000000000000004c50564c";
-
 /** How long the Verified check stays on screen before Pay. */
 const VERIFIED_LINGER_MS = 900;
+
+/** Traveler-facing message for a failed wallet command; generic for anything unexpected. */
+function walletErrorCopy(error: unknown, fallback: string): string {
+  return error instanceof WalletAdapterError ? error.message : fallback;
+}
 
 export type AppActions = {
   navigate: (screen: Screen) => void;
@@ -64,11 +66,17 @@ export function AppProvider({ children }: { children: ReactNode }) {
     dispatch({ type: "WALLET_CONNECTING" });
     try {
       const account = await rails.wallet.connect();
-      const balanceCents = await rails.wallet.getUsdcBalanceCents(account.address);
-      dispatch({ type: "WALLET_CONNECTED", address: account.address, usdcBalance: centsToUsd(balanceCents) });
+      // A failed balance read must not undo a successful sign-in; show zero and let the sheet explain.
+      let balanceCents = 0;
+      try {
+        balanceCents = await rails.wallet.getUsdcBalanceCents(account.address);
+      } catch (error) {
+        console.error("[late-gate] balance read failed", error);
+      }
+      dispatch({ type: "WALLET_CONNECTED", address: account.address, usdcBalance: centsToUsd(balanceCents), live: rails.isLive() });
     } catch (error) {
       console.error("[late-gate] wallet connect failed", error);
-      dispatch({ type: "WALLET_DISCONNECTED" });
+      dispatch({ type: "WALLET_FAILED", error: walletErrorCopy(error, "Wallet did not connect. Try again.") });
     }
   }, [rails, stateRef]);
 
@@ -84,6 +92,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
    * Sandbox path: run IDKit, forward the proof unchanged, wait for a worldSession.
    * orbLegacy path: stub nullifier, same endpoint. Only a returned session flips
    * the UI to verified; a proof alone never does.
+   *
+   * If Sandbox cannot start at all (no server-signed rp_context yet), the
+   * request drops to the stub path and the receipt says so (`orbLegacy · stub`).
    */
   const verifyWithWorld = useCallback(
     async (path: VerifyPath) => {
@@ -92,10 +103,19 @@ export function AppProvider({ children }: { children: ReactNode }) {
       const flightKey = selectFlightKey(current);
       dispatch({ type: "VERIFY_PENDING", path });
       try {
-        const request =
-          path === "sandbox"
-            ? { flightKey, idkitResponse: await rails.worldId.requestProof({ action: railsEnv.worldAction, signal: flightKey }) }
-            : { flightKey, stubNullifier: `stub:${flightKey}` };
+        let request: { flightKey: string; idkitResponse?: Awaited<ReturnType<typeof rails.worldId.requestProof>>; stubNullifier?: string };
+        if (path === "sandbox") {
+          try {
+            request = { flightKey, idkitResponse: await rails.worldId.requestProof({ action: railsEnv.worldAction, signal: flightKey }) };
+          } catch (error) {
+            if (!(error instanceof WorldSandboxUnavailableError)) throw error;
+            console.warn("[late-gate] sandbox unavailable, using orbLegacy stub path:", error.reason, error.message);
+            dispatch({ type: "VERIFY_PENDING", path: "orbLegacy" });
+            request = { flightKey, stubNullifier: `stub:${flightKey}` };
+          }
+        } else {
+          request = { flightKey, stubNullifier: `stub:${flightKey}` };
+        }
         const result = await rails.api.verifyWorld(request);
         if (!result.ok) {
           dispatch({ type: "VERIFY_FAILED", error: result.reason });
@@ -109,7 +129,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
         }, VERIFIED_LINGER_MS);
       } catch (error) {
         console.error("[late-gate] world verify failed", error);
-        dispatch({ type: "VERIFY_FAILED", error: "Sandbox could not issue a proof. Try again or use the orbLegacy stub path." });
+        const message = error instanceof WorldProofError ? error.message : "Sandbox could not issue a proof. Try again or use the orbLegacy stub path.";
+        dispatch({ type: "VERIFY_FAILED", error: message });
       }
     },
     [rails, later, stateRef],
@@ -132,7 +153,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     const amountCents = usdToCents(selectPremiumUsd(current));
     dispatch({ type: "PAY_PENDING" });
     try {
-      const transfer = await rails.wallet.transferUsdc({ from, to: DEMO_VAULT_ADDRESS, amountCents });
+      const transfer = await rails.wallet.transferUsdc({ from, to: vaultAddress(), amountCents });
       const issued = await rails.api.issueTicket({
         flightKey: session.flightKey,
         worldSession: session.worldSession,
@@ -148,7 +169,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       dispatch({ type: "STUB_ISSUED", stub: buildCurrentStub(current, issued.ticketNumber) });
     } catch (error) {
       console.error("[late-gate] pay failed", error);
-      dispatch({ type: "PAY_FAILED", error: "Payment did not go through. Nothing was charged." });
+      dispatch({ type: "PAY_FAILED", error: walletErrorCopy(error, "Payment did not go through. Nothing was charged.") });
     }
   }, [rails, connectWallet, stateRef]);
 
@@ -214,7 +235,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         const result =
           kind === "deposit"
             ? await (async () => {
-                const transfer = await rails.wallet.transferUsdc({ from: address, to: DEMO_VAULT_ADDRESS, amountCents });
+                const transfer = await rails.wallet.transferUsdc({ from: address, to: vaultAddress(), amountCents });
                 txHash = transfer.txHash;
                 return rails.api.lpDeposit({ from: address, amountCents, role: "lp", txHash });
               })()
@@ -226,7 +247,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         dispatch({ type: "POOL_MOVED", kind, amountUsd: check.amountUsd, txHash: result.txHash ?? txHash });
       } catch (error) {
         console.error("[late-gate] pool move failed", error);
-        dispatch({ type: "POOL_FAILED", error: "The transfer did not go through. Nothing moved." });
+        dispatch({ type: "POOL_FAILED", error: walletErrorCopy(error, "The transfer did not go through. Nothing moved.") });
       }
     },
     [rails, stateRef],

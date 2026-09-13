@@ -52,13 +52,33 @@ const NETWORKS: Readonly<Record<number, WorldchainNetwork>> = {
   },
 };
 
-/** Active network from env. Unknown chain ids fall back to Sepolia so demos never hit mainnet by accident. */
+/** Network config for a chain id. Unknown ids fall back to Sepolia so demos never hit mainnet by accident. */
+export function networkFor(chainId: number): WorldchainNetwork {
+  return NETWORKS[chainId] ?? NETWORKS[WORLDCHAIN_SEPOLIA_CHAIN_ID];
+}
+
+/** Active network from env, with the optional USDC address override applied. */
 export function activeNetwork(): WorldchainNetwork {
-  const network = NETWORKS[railsEnv.chainId] ?? NETWORKS[WORLDCHAIN_SEPOLIA_CHAIN_ID];
+  const network = networkFor(railsEnv.chainId);
   if (railsEnv.usdcAddress.startsWith("0x")) {
     return { ...network, usdc: railsEnv.usdcAddress as Hex };
   }
   return network;
+}
+
+/**
+ * Placeholder recipient used by the mock adapters. The live wallet adapter
+ * refuses to send real USDC here; set NEXT_PUBLIC_LP_VAULT_ADDRESS instead.
+ */
+export const DEMO_VAULT_PLACEHOLDER: Hex = "0x000000000000000000000000000000004c50564c";
+
+/** Where premiums and LP deposits go: the configured vault, or the demo placeholder. */
+export function vaultAddress(): Hex {
+  return railsEnv.lpVaultAddress.startsWith("0x") ? (railsEnv.lpVaultAddress as Hex) : DEMO_VAULT_PLACEHOLDER;
+}
+
+export function isVaultConfigured(): boolean {
+  return vaultAddress() !== DEMO_VAULT_PLACEHOLDER;
 }
 
 export function explorerTxUrl(txHash: Hex, network: WorldchainNetwork = activeNetwork()): string {

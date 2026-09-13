@@ -46,7 +46,11 @@ function Viewfinder({ verify }: { verify: VerifyState }) {
 function verifyCopy(verify: VerifyState): { headline: string; note: string; cta: string } {
   switch (verify.status) {
     case "pending":
-      return { headline: "Checking proof.", note: "SANDBOX PROOF · POST /api/world/verify", cta: "Checking proof…" };
+      return {
+        headline: "Checking proof.",
+        note: verify.path === "orbLegacy" ? "SANDBOX SIGNER OFFLINE · ORBLEGACY STUB PATH" : "SANDBOX PROOF · IDKIT → POST /api/world/verify",
+        cta: "Checking proof…",
+      };
     case "verified":
       return {
         headline: "Verified.",

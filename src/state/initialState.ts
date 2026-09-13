@@ -30,7 +30,7 @@ export function createInitialState(options: { demo?: boolean } = {}): AppState {
     currentStub: null,
     owned: [],
     live: { estMinutesLate: DEMO_LIVE_START_MINUTES },
-    wallet: { status: "disconnected", address: null, usdcBalance: DEMO_WALLET_USDC },
+    wallet: { status: "disconnected", address: null, usdcBalance: DEMO_WALLET_USDC, live: false, error: null },
     sheetOpen: false,
     pool: {
       tvlUsd: DEMO_POOL_TVL_USDC,

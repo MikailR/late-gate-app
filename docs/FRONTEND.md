@@ -87,6 +87,70 @@ already adopts pool-wide TVL and open-stub counts from `getPool()` whenever the 
 (the mock tracks those across premiums, payouts, deposits and withdrawals). The caller's principal and
 earned share are the remaining store-owned numbers to move over once the rails expose an LP position.
 
+## World Mini App: MiniKit + IDKit
+
+The app is a World Mini App shell as well as a mobile web app.
+
+- `components/providers/WorldMiniKitProvider.tsx` wraps the tree in `MiniKitProvider` (from
+  `@worldcoin/minikit-js/minikit-provider`) with `NEXT_PUBLIC_WORLD_APP_ID`, so `MiniKit.isInstalled()`
+  is true inside World App. In a normal browser the install reports false and nothing else changes.
+- `lib/world/minikit.ts` is the only file that imports the MiniKit SDK for runtime checks
+  (`isWorldAppLive`, `isInsideWorldApp`).
+- `lib/rails/switching.ts` picks live vs mock **per call**: live when the app id is set and MiniKit is
+  installed (or when `NEXT_PUBLIC_RAILS_MODE=http`), mock otherwise. `/#demo` keeps working in a browser.
+
+### Portal setup (Developer Portal, Mini App "LateKid")
+
+- **App URL** must be exactly the origin the app is served from. For the tunnel build that is the
+  current `https://….trycloudflare.com` hostname; a new tunnel means updating App URL again.
+- Public ids go in `NEXT_PUBLIC_WORLD_APP_ID`, `NEXT_PUBLIC_WORLD_RP_ID`, `NEXT_PUBLIC_WORLD_ACTION`.
+- The **RP private signing key never goes in `NEXT_PUBLIC_*`** and is never committed. It belongs on
+  the rails (or, for a local test, in server-only `WORLD_RP_SIGNING_KEY`).
+
+### World ID (IDKit 4, Sandbox)
+
+`lib/rails/world/idkitWorldIdAdapter.ts`, following the rails contract:
+
+1. `rails.api.getRpContext()` = `POST /api/world/rp-context` (no body; rails PR #8, GET also accepted)
+   → `200 { ok: true, rp_context: { rp_id, nonce, created_at, expires_at, signature } }`, **503** when the
+   rails lack `WORLD_RP_SIGNING_KEY` / rp_id, **500** on a sign failure. The action is locked server-side
+   to `late-gate-ticket`. In `http` mode `HttpRailsClient` calls the rails directly. In `mock` mode the
+   call hits this app's mirror route (`app/api/world/rp-context/route.ts`), which signs only with a
+   server-only key, else proxies server-side to `RAILS_BASE_URL` / `NEXT_PUBLIC_RAILS_BASE_URL`, else 503.
+   So setting `NEXT_PUBLIC_RAILS_BASE_URL` alone already sources real rp_contexts from the rails while
+   verify stays mock. Nothing is faked.
+2. `IDKit.request({ app_id, action: "late-gate-ticket", rp_context, allow_legacy_proofs: true,
+   environment })` with `.preset(orbLegacy({ signal: flightKey }))`. `environment` is the IDKit string
+   from `NEXT_PUBLIC_IDKIT_ENVIRONMENT`, default **`"sandbox"`**: it opens the World ID Sandbox app
+   handoff, which is what issues prize-track proofs. `"production"` is the production World ID app (it can
+   open the Mini App but will not issue Sandbox proofs); `"staging"` is simulator-only and never used.
+   The rails server flag `WORLD_ENV=sandbox` is a separate thing. Inside World App this runs natively;
+   in a mobile browser the connector URI is opened for World App.
+3. `pollUntilCompletion()` result is forwarded **unchanged** (no field remap) as `idkitResponse` in
+   `POST /api/world/verify { flightKey, idkitResponse }` → `200 { ok, humanKey, worldSession, expiresAt,
+   stub, preset }` / 401 UNVERIFIED / 409 DUPLICATE. Only a returned `worldSession` marks the traveler
+   verified; an empty proof is UNVERIFIED.
+
+If step 1 fails (no signing key anywhere yet), `verifyWithWorld` drops to the existing orbLegacy stub
+path (`stubNullifier`) and the receipt prints `orbLegacy · stub`. Preset stays `orbLegacy`;
+`selfieCheckLegacy` waits on the Tools for Humanity flag.
+
+### Wallet (MiniKit)
+
+`lib/rails/wallet/worldchainWalletAdapter.ts`:
+
+- `connect`: `MiniKit.walletAuth` (SIWE). The signed message is kept for the rails to verify (TODO seam).
+- `getUsdcBalanceCents`: JSON-RPC `eth_call balanceOf` on USDC, no viem needed.
+- `transferUsdc`: `MiniKit.pay` with `Tokens.USDC`.
+
+**Chain caveat.** MiniKit `pay` / `sendTransaction` only run on World Chain **mainnet (480)** with real
+USDC. The product demo lock is Sepolia (4801). So inside World App the live adapter reads and pays on
+480, and real payment is double-gated: `NEXT_PUBLIC_WORLD_PAY_ENABLED=1` **and** a configured
+`NEXT_PUBLIC_LP_VAULT_ADDRESS` (it refuses to send to the demo placeholder). With either unset the
+Pay step fails with a readable message and nothing is charged. `PayResult.transactionId` is a World
+App transaction id; the rails must resolve it via the Developer Portal API before treating it as an
+on-chain `usdcTxHash`.
+
 ### Flipping to live
 
 1. Copy `.env.example` to `.env.local`.

@@ -7,6 +7,8 @@ export type WorldProofRequest = {
   action: string;
   /** Bind the proof to the flight so one human covers one flight. */
   signal?: string;
+  /** Web (non World App) only: IDKit connector URI the UI may render as a link or QR. */
+  onConnectorUri?: (uri: string) => void;
 };
 
 /**

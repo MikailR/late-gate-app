@@ -27,6 +27,10 @@ export type WalletState = {
   address: Hex | null;
   /** USDC held, in whole dollars with cents (128.4). */
   usdcBalance: number;
+  /** True when the address came from MiniKit inside World App, false for the demo wallet. */
+  live: boolean;
+  /** Last connect / command failure, shown once under the header. */
+  error: string | null;
 };
 
 export type VerifyPath = "sandbox" | "orbLegacy";

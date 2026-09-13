@@ -11,6 +11,8 @@ import { lookupStatusFor } from "@/lib/data/flightFixtures";
 import { payoutUsdForMinutesLate, premiumUsdForProduct, usdToCents } from "@/lib/domain/pricing";
 import type { FlightKind, Hex } from "@/lib/domain/types";
 import { activeNetwork, centsToUsdcUnits, explorerTxUrl } from "../chain";
+import { railsEnv } from "../env";
+import { nullifierOf } from "../types";
 import type {
   FlightSnapshot,
   LpDepositRequest,
@@ -21,6 +23,7 @@ import type {
   QuoteResult,
   RailsClient,
   RefusalCode,
+  RpContextResult,
   TicketIssueRequest,
   TicketIssueResult,
   UsdcReceipt,
@@ -123,9 +126,22 @@ export class MockRailsClient implements RailsClient {
     };
   }
 
+  /**
+   * Even in mock mode the RP context is never fabricated: ask this app's own
+   * signing route, which answers 503 unless a server-only key is configured.
+   */
+  async getRpContext(): Promise<RpContextResult> {
+    try {
+      const response = await fetch(railsEnv.worldRpContextUrl, { method: "POST", headers: { "content-type": "application/json" }, body: "{}" });
+      return (await response.json()) as RpContextResult;
+    } catch (error) {
+      return { ok: false, reason: "RP_CONTEXT_UNAVAILABLE", detail: error instanceof Error ? error.message : "rp-context request failed." };
+    }
+  }
+
   async verifyWorld(request: WorldVerifyRequest): Promise<WorldVerifyResult> {
     await sleep(MOCK_LATENCY_MS * 2);
-    const nullifier = request.idkitResponse?.nullifier_hash ?? request.stubNullifier;
+    const nullifier = nullifierOf(request.idkitResponse) ?? request.stubNullifier;
     if (!nullifier) {
       return {
         ok: false,

@@ -2,6 +2,7 @@
 
 import type { ReactNode } from "react";
 import { AppHeader } from "./AppHeader";
+import { WalletNotice } from "./WalletNotice";
 import { WalletSheet } from "./WalletSheet";
 
 /**
@@ -16,6 +17,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       style={{ "--header-h": "56px", "--app-max-w": "480px" } as React.CSSProperties}
     >
       <AppHeader />
+      <WalletNotice />
       <main className="flex flex-1 flex-col">{children}</main>
       <WalletSheet />
     </div>

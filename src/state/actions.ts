@@ -36,7 +36,8 @@ export type AppAction =
   | { type: "SETTLE_EXPIRED" }
   // Wallet
   | { type: "WALLET_CONNECTING" }
-  | { type: "WALLET_CONNECTED"; address: Hex; usdcBalance: number }
+  | { type: "WALLET_CONNECTED"; address: Hex; usdcBalance: number; live: boolean }
+  | { type: "WALLET_FAILED"; error: string }
   | { type: "WALLET_DISCONNECTED" }
   | { type: "OPEN_SHEET" }
   | { type: "CLOSE_SHEET" }

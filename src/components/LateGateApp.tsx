@@ -3,6 +3,7 @@
 import { useDemoEntry } from "@/hooks/useDemoEntry";
 import { AppProvider, useApp } from "@/state/AppProvider";
 import { AppShell } from "./layout/AppShell";
+import { WorldMiniKitProvider } from "./providers/WorldMiniKitProvider";
 import { ScreenRouter } from "./screens/ScreenRouter";
 
 function LateGateAppInner() {
@@ -15,11 +16,16 @@ function LateGateAppInner() {
   );
 }
 
-/** Client root. All demo state lives in AppProvider; screens are switched in place. */
+/**
+ * Client root. MiniKit installs first so `MiniKit.isInstalled()` is answered
+ * inside World App; all demo state lives in AppProvider; screens switch in place.
+ */
 export function LateGateApp() {
   return (
-    <AppProvider>
-      <LateGateAppInner />
-    </AppProvider>
+    <WorldMiniKitProvider>
+      <AppProvider>
+        <LateGateAppInner />
+      </AppProvider>
+    </WorldMiniKitProvider>
   );
 }

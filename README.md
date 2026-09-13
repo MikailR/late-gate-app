@@ -30,6 +30,20 @@ Other scripts: `npm run build`, `npm run start`, `npm run lint`, `npm run typech
   (see `src/lib/data/airlines.ts`). Any other number is on time and buyable.
 - On the live tracker, **skip ahead** settles the stub immediately.
 
+## World Mini App
+
+The app installs MiniKit on load (`NEXT_PUBLIC_WORLD_APP_ID`), so it runs inside World App as the
+Mini App **LateKid** as well as in a phone browser. Inside World App the wallet and World ID paths use
+MiniKit / IDKit (Sandbox); in a browser they stay on the mock adapters.
+
+- Portal **App URL** must match the URL the app is served from (for a tunnel build, the current
+  trycloudflare hostname).
+- Public ids (`app_…`, `rp_…`, action) are safe in `NEXT_PUBLIC_*`. The **RP private signing key is
+  server-only** (`WORLD_RP_SIGNING_KEY` on the rails, never `NEXT_PUBLIC_`, never committed). Without
+  it Sandbox IDKit cannot start and Verify falls back to the orbLegacy stub path.
+- Real USDC pay through MiniKit is off unless `NEXT_PUBLIC_WORLD_PAY_ENABLED=1` and a vault address is
+  set; World App pays on World Chain mainnet (480), see `docs/FRONTEND.md`.
+
 ## Stack
 
 Next.js 16 (App Router) + TypeScript + Tailwind v4. Fonts: Libre Franklin and Courier Prime.

@@ -81,27 +81,68 @@ export type QuoteResult = QuoteSuccess | QuoteRefusal;
 
 export type WorldPreset = "orbLegacy" | "selfieCheckLegacy";
 
+/** One credential response inside an IDKit 4 result (v3 legacy or v4 shape). */
+export type IdKitResponseItem = {
+  identifier: string;
+  signal_hash?: string;
+  /** v3: ABI-encoded proof hex. v4: array of compressed proof elements. */
+  proof: string | string[];
+  merkle_root?: string;
+  nullifier: string;
+  issuer_schema_id?: number;
+  expires_at_min?: number;
+};
+
 /**
- * IDKit result forwarded unchanged to the server. Field names follow IDKit;
- * the UI never displays these values.
+ * IDKit result forwarded unchanged to the server. Covers the IDKit 4
+ * `IDKitResult` (protocol 3.0 legacy or 4.0) and the flat IDKit 1.x shape
+ * the rails verify route already accepts. The UI never displays these values.
  */
 export type IdKitProofPayload = {
-  proof: string;
-  merkle_root: string;
-  nullifier_hash: string;
-  verification_level: string;
+  protocol_version?: "3.0" | "4.0";
+  nonce?: string;
+  action?: string;
+  responses?: IdKitResponseItem[];
+  /** Flat legacy fields (IDKit 1.x style). */
+  proof?: string;
+  merkle_root?: string;
+  nullifier_hash?: string;
+  verification_level?: string;
   /** Sandbox proofs are issued by the World Sandbox environment. */
-  environment?: "sandbox" | "production";
+  environment?: string;
 };
+
+/** Nullifier from either payload shape, or null when the payload carries none. */
+export function nullifierOf(payload: IdKitProofPayload | undefined): string | null {
+  if (!payload) return null;
+  return payload.nullifier_hash ?? payload.responses?.[0]?.nullifier ?? null;
+}
 
 export type WorldVerifyRequest = {
   flightKey: string;
-  /** Sandbox IDKit result. Preferred path. */
+  /** IDKit result, forwarded UNCHANGED (no field remap). Preferred path. */
   idkitResponse?: IdKitProofPayload;
   /** Local / fallback only. The server returns `stub: true` for this path. */
   stubNullifier?: string;
-  rp_id?: string;
 };
+
+// ---------------------------------------------------------------------------
+// POST /api/world/rp-context (rails, shipping next)
+// ---------------------------------------------------------------------------
+
+/** Server-signed IDKit 4 RP context. The signing key never leaves the rails. */
+export type RpContext = {
+  rp_id: string;
+  nonce: string;
+  created_at: number;
+  expires_at: number;
+  signature: string;
+};
+
+export type RpContextResult =
+  | { ok: true; rp_context: RpContext }
+  /** 503 when WORLD_RP_SIGNING_KEY is unset on the rails. */
+  | { ok: false; reason: string; detail?: string };
 
 export type WorldVerifySuccess = {
   ok: true;
@@ -258,6 +299,8 @@ export type PoolSnapshot = {
 
 export interface RailsClient {
   getQuote(request: QuoteRequest): Promise<QuoteResult>;
+  /** POST /api/world/rp-context with an empty body. Action is locked server-side to late-gate-ticket. */
+  getRpContext(): Promise<RpContextResult>;
   verifyWorld(request: WorldVerifyRequest): Promise<WorldVerifyResult>;
   issueTicket(request: TicketIssueRequest): Promise<TicketIssueResult>;
   workerTick(request?: WorkerTickRequest): Promise<WorkerTickResult>;
