@@ -59,6 +59,15 @@ export const railsEnv = {
    */
   idkitEnvironment: readIdkitEnvironment(),
   /**
+   * `stub` (default until the Sandbox app enrolment lands): skip IDKit and
+   * verify through the orbLegacy stub path (`stubNullifier`) on
+   * POST /api/world/verify. `sandbox`: run the real IDKit Sandbox flow first,
+   * falling back to the stub path only when no signed rp_context exists.
+   */
+  worldVerifyMode: (process.env.NEXT_PUBLIC_WORLD_VERIFY_MODE === "sandbox" ? "sandbox" : "stub") as "stub" | "sandbox",
+  /** Rails demo contract: POST /api/world/verify { flightKey, stubNullifier } → 200 { ok, stub: true, preset: orbLegacy, worldSession, humanKey }. */
+  worldStubNullifier: process.env.NEXT_PUBLIC_WORLD_STUB_NULLIFIER || "demo-human-a",
+  /**
    * Mock mode only: where the browser asks for a server-signed `rp_context`.
    * Defaults to this app's own thin route (503 without a server key).
    * In http mode the rails client uses `${baseUrl}/api/world/rp-context`.

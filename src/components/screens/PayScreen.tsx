@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/Button";
 import { PaperCard, ReceiptRow, ReceiptRule } from "@/components/ui/PaperCard";
 import { Screen, ScreenFooter } from "@/components/ui/Screen";
 import { WALLET_NETWORK_LABEL } from "@/lib/config/constants";
+import { railsEnv } from "@/lib/rails";
 import { formatUsdc, formatWholeUsd, truncateAddress } from "@/lib/format/money";
 import { useApp } from "@/state/AppProvider";
 import { productShort, selectFlightLabel, selectPayoutUsd, selectPremiumUsd, selectWalletConnected } from "@/state/selectors";
@@ -37,6 +38,7 @@ export function PayScreen() {
         <ReceiptRow label="WALLET" value={connected && wallet.address ? truncateAddress(wallet.address) : "NOT CONNECTED"} valueClassName={connected ? undefined : "text-stamp"} />
         <ReceiptRow label="VERIFIED" value={verifyLabel} valueClassName={verify.session ? undefined : "text-stamp"} />
         <ReceiptRow label="PAY WITH" value={`USDC · ${WALLET_NETWORK_LABEL}`} />
+        {!railsEnv.worldPayEnabled && <ReceiptRow label="TRANSFER" value={wallet.live ? "Demo transfer · live pay off" : "Demo wallet"} tone="muted" />}
         <ReceiptRule />
         <ReceiptRow label="TOTAL" value={`$${premium}.00 USDC`} tone="bold" />
         <ReceiptRow label="BALANCE AFTER" value={connected ? formatUsdc(wallet.usdcBalance - premium) : "···"} tone="muted" />

@@ -14,6 +14,8 @@ export type UsdcTransferRequest = {
 export type UsdcTransferReceipt = {
   txHash: Hex;
   chainId: number;
+  /** True when no real USDC moved (demo wallet, or live pay switched off). */
+  simulated?: boolean;
 };
 
 /**

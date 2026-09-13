@@ -101,20 +101,22 @@ export function AppProvider({ children }: { children: ReactNode }) {
       const current = stateRef.current;
       if (current.verify.status === "pending" || current.verify.status === "verified") return;
       const flightKey = selectFlightKey(current);
-      dispatch({ type: "VERIFY_PENDING", path });
+      // Deadline build: no Sandbox app enrolment, so `stub` mode goes straight to the orbLegacy stub path.
+      const effectivePath: VerifyPath = path === "sandbox" && railsEnv.worldVerifyMode === "stub" ? "orbLegacy" : path;
+      dispatch({ type: "VERIFY_PENDING", path: effectivePath });
       try {
         let request: { flightKey: string; idkitResponse?: Awaited<ReturnType<typeof rails.worldId.requestProof>>; stubNullifier?: string };
-        if (path === "sandbox") {
+        if (effectivePath === "sandbox") {
           try {
             request = { flightKey, idkitResponse: await rails.worldId.requestProof({ action: railsEnv.worldAction, signal: flightKey }) };
           } catch (error) {
             if (!(error instanceof WorldSandboxUnavailableError)) throw error;
             console.warn("[late-gate] sandbox unavailable, using orbLegacy stub path:", error.reason, error.message);
             dispatch({ type: "VERIFY_PENDING", path: "orbLegacy" });
-            request = { flightKey, stubNullifier: `stub:${flightKey}` };
+            request = { flightKey, stubNullifier: railsEnv.worldStubNullifier };
           }
         } else {
-          request = { flightKey, stubNullifier: `stub:${flightKey}` };
+          request = { flightKey, stubNullifier: railsEnv.worldStubNullifier };
         }
         const result = await rails.api.verifyWorld(request);
         if (!result.ok) {

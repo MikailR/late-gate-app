@@ -33,6 +33,6 @@ export class MockWalletAdapter implements WalletAdapter {
   async transferUsdc(request: UsdcTransferRequest): Promise<UsdcTransferReceipt> {
     await sleep(TRANSFER_MS);
     if (request.amountCents <= 0) throw new Error("Transfer amount must be positive.");
-    return { txHash: randomHex(), chainId: activeNetwork().chainId };
+    return { txHash: randomHex(), chainId: activeNetwork().chainId, simulated: true };
   }
 }

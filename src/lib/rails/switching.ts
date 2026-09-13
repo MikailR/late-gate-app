@@ -1,4 +1,5 @@
 import type { Hex } from "@/lib/domain/types";
+import { railsEnv } from "./env";
 import type { IdKitProofPayload } from "./types";
 import type { UsdcTransferReceipt, UsdcTransferRequest, WalletAccount, WalletAdapter } from "./wallet/types";
 import type { WorldEnvironment, WorldIdAdapter, WorldProofRequest } from "./world/types";
@@ -31,7 +32,16 @@ export class SwitchingWalletAdapter implements WalletAdapter {
     return this.pick().getUsdcBalanceCents(address);
   }
 
-  transferUsdc(request: UsdcTransferRequest): Promise<UsdcTransferReceipt> {
+  /**
+   * Live pay moves real mainnet USDC, so while NEXT_PUBLIC_WORLD_PAY_ENABLED is
+   * off the transfer is simulated even inside World App. The wallet address
+   * stays the real MiniKit one; the receipt is marked `simulated`.
+   */
+  async transferUsdc(request: UsdcTransferRequest): Promise<UsdcTransferReceipt> {
+    if (this.shouldUseLive() && !railsEnv.worldPayEnabled) {
+      const receipt = await this.mock.transferUsdc(request);
+      return { ...receipt, simulated: true };
+    }
     return this.pick().transferUsdc(request);
   }
 }

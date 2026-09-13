@@ -2,6 +2,7 @@
 
 import { Button } from "@/components/ui/Button";
 import { Screen, ScreenFooter } from "@/components/ui/Screen";
+import { railsEnv } from "@/lib/rails";
 import { cn } from "@/lib/utils/cn";
 import { useApp } from "@/state/AppProvider";
 import { productShort } from "@/state/selectors";
@@ -48,7 +49,7 @@ function verifyCopy(verify: VerifyState): { headline: string; note: string; cta:
     case "pending":
       return {
         headline: "Checking proof.",
-        note: verify.path === "orbLegacy" ? "SANDBOX SIGNER OFFLINE · ORBLEGACY STUB PATH" : "SANDBOX PROOF · IDKIT → POST /api/world/verify",
+        note: verify.path === "orbLegacy" ? "ORBLEGACY STUB PATH · POST /api/world/verify" : "SANDBOX PROOF · IDKIT → POST /api/world/verify",
         cta: "Checking proof…",
       };
     case "verified":
@@ -60,9 +61,18 @@ function verifyCopy(verify: VerifyState): { headline: string; note: string; cta:
     case "failed":
       return { headline: "Could not verify.", note: verify.error?.toUpperCase() ?? "TRY AGAIN", cta: "Try again" };
     default:
-      return { headline: "Confirm it’s you.", note: "SANDBOX LIVE · PRODUCTION SELFIE CHECK WAITS ON WORLD FLAG", cta: "Verify with World (Sandbox)" };
+      return STUB_MODE
+        ? {
+            headline: "Confirm it’s you.",
+            note: "SANDBOX APP NOT ENROLLED YET · ORBLEGACY STUB VIA POST /api/world/verify",
+            cta: "Verify with World (Sandbox stub)",
+          }
+        : { headline: "Confirm it’s you.", note: "SANDBOX LIVE · PRODUCTION SELFIE CHECK WAITS ON WORLD FLAG", cta: "Verify with World (Sandbox)" };
   }
 }
+
+/** Deadline build: IDKit stays wired but the default path is the honest stub. */
+const STUB_MODE = railsEnv.worldVerifyMode === "stub";
 
 /**
  * Step 1 of 2. Sandbox IDKit is the live path; the result goes to
@@ -93,7 +103,7 @@ export function VerifyScreen() {
             onClick={() => void actions.verifyWithWorld("orbLegacy")}
             className="mt-3 block min-h-11 w-full text-center font-mono text-[11px] text-muted underline"
           >
-            Sandbox not issuing? orbLegacy stub path ›
+            {STUB_MODE ? "Production Selfie Check is gated by World. This is the stub path." : "Sandbox not issuing? orbLegacy stub path ›"}
           </button>
         )}
       </ScreenFooter>

@@ -175,6 +175,15 @@ Receipt idiom pieces (`components/ui`): `PaperCard` (serrated edge, print animat
 `ReceiptRule`, `Stamp` (drop / center animations), `barcode`. The perforated Pick a stub halves and the
 punched minute pickers are component classes in `globals.css` (`stub-half-top/bottom`, `tear-rule`).
 
+## Deadline build: stub verify
+
+`NEXT_PUBLIC_WORLD_VERIFY_MODE=stub` (default) sends `{ flightKey, stubNullifier: "demo-human-a" }` to
+`POST /api/world/verify` (rails: `200 { ok, stub: true, preset: "orbLegacy", worldSession, humanKey }`;
+empty proof = 401 UNVERIFIED). The UI labels it `Verify with World (Sandbox stub)` and the pay receipt
+prints `orbLegacy · stub`. `sandbox` mode runs the real IDKit flow above first. Inside World App with
+`NEXT_PUBLIC_WORLD_PAY_ENABLED` off, the transfer is a labelled demo transfer on the real MiniKit
+address. See `docs/WORLD_FEEDBACK.md` for the prize-track story.
+
 ## Testing
 
 There is no test runner yet. Suggested first tests:
