@@ -99,6 +99,12 @@ export type OwnedStub = {
   status: StubStatus;
   /** Set once the stub settles PAID. */
   lateByMinutes?: number;
+  /** Premium transfer id (tx hash style). Demo builds fabricate one and flag it. */
+  premiumTxHash?: Hex;
+  /** Payout transfer id, set on PAID. */
+  payoutTxHash?: Hex;
+  /** True when no real USDC moved. */
+  simulated?: boolean;
 };
 
 export type Hex = `0x${string}`;

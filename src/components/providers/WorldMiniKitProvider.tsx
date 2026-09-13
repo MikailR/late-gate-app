@@ -5,7 +5,7 @@ import type { ReactNode } from "react";
 import { railsEnv } from "@/lib/rails/env";
 
 /**
- * Installs MiniKit with the Mini App id (LateKid) so `MiniKit.isInstalled()`
+ * Installs MiniKit with the Late Gate Mini App id so `MiniKit.isInstalled()`
  * is true inside World App. IDKit uses the separate World ID app id. In a
  * normal browser the install reports failure and the app keeps running on
  * the mock adapters.

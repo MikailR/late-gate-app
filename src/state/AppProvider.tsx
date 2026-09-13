@@ -2,7 +2,7 @@
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useReducer, useRef, type ReactNode } from "react";
 import { useLatestRef } from "@/hooks/useLatestRef";
-import { DEMO_LATE_MINUTES } from "@/lib/config/constants";
+import { DEMO_LATE_MINUTES, DEMO_WALLET_USDC } from "@/lib/config/constants";
 import { centsToUsd, usdToCents } from "@/lib/domain/pricing";
 import type { Hex } from "@/lib/domain/types";
 import { getRails, railsEnv, vaultAddress, WalletAdapterError, WorldProofError, WorldSandboxUnavailableError } from "@/lib/rails";
@@ -66,14 +66,19 @@ export function AppProvider({ children }: { children: ReactNode }) {
     dispatch({ type: "WALLET_CONNECTING" });
     try {
       const account = await rails.wallet.connect();
-      // A failed balance read must not undo a successful sign-in; show zero and let the sheet explain.
+      const live = rails.isLive();
+      // A failed balance read must not undo a successful sign-in.
       let balanceCents = 0;
       try {
         balanceCents = await rails.wallet.getUsdcBalanceCents(account.address);
       } catch (error) {
         console.error("[late-gate] balance read failed", error);
       }
-      dispatch({ type: "WALLET_CONNECTED", address: account.address, usdcBalance: centsToUsd(balanceCents), live: rails.isLive() });
+      // Live pay is off, so an empty on-chain balance would leave the demo with nothing to spend.
+      // Run the session on the demo USDC ledger instead and say so in the UI.
+      const demoLedger = !live || (!railsEnv.worldPayEnabled && balanceCents <= 0);
+      const usdcBalance = demoLedger && balanceCents <= 0 ? DEMO_WALLET_USDC : centsToUsd(balanceCents);
+      dispatch({ type: "WALLET_CONNECTED", address: account.address, usdcBalance, live, demoLedger });
     } catch (error) {
       console.error("[late-gate] wallet connect failed", error);
       dispatch({ type: "WALLET_FAILED", error: walletErrorCopy(error, "Wallet did not connect. Try again.") });
@@ -168,7 +173,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         dispatch({ type: "PAY_FAILED", error: issued.reason });
         return;
       }
-      dispatch({ type: "STUB_ISSUED", stub: buildCurrentStub(current, issued.ticketNumber) });
+      dispatch({ type: "STUB_ISSUED", stub: buildCurrentStub(current, issued.ticketNumber, transfer) });
     } catch (error) {
       console.error("[late-gate] pay failed", error);
       dispatch({ type: "PAY_FAILED", error: walletErrorCopy(error, "Payment did not go through. Nothing was charged.") });
@@ -198,7 +203,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
           dispatch({ type: "SETTLE_EXPIRED" });
           return;
         }
-        dispatch({ type: "SETTLE_PAID", lateByMinutes: settled?.observedDelayMinutes ?? estMinutesLate ?? DEMO_LATE_MINUTES });
+        dispatch({ type: "SETTLE_PAID", lateByMinutes: settled?.observedDelayMinutes ?? estMinutesLate ?? DEMO_LATE_MINUTES, payoutTxHash: settled?.payoutTxHash });
       } catch (error) {
         console.error("[late-gate] worker tick failed", error);
         dispatch({ type: "SETTLE_PAID", lateByMinutes: estMinutesLate });

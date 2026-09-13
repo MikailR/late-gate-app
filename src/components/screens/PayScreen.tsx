@@ -4,7 +4,8 @@ import { Button } from "@/components/ui/Button";
 import { PaperCard, ReceiptRow, ReceiptRule } from "@/components/ui/PaperCard";
 import { Screen, ScreenFooter } from "@/components/ui/Screen";
 import { WALLET_NETWORK_LABEL } from "@/lib/config/constants";
-import { railsEnv } from "@/lib/rails";
+import { DEMO_USDC_LABEL, isDemoMoney } from "@/lib/format/demoMoney";
+import { vaultAddress } from "@/lib/rails";
 import { formatUsdc, formatWholeUsd, truncateAddress } from "@/lib/format/money";
 import { useApp } from "@/state/AppProvider";
 import { productShort, selectFlightLabel, selectPayoutUsd, selectPremiumUsd, selectWalletConnected } from "@/state/selectors";
@@ -38,11 +39,13 @@ export function PayScreen() {
         <ReceiptRow label="WALLET" value={connected && wallet.address ? truncateAddress(wallet.address) : "NOT CONNECTED"} valueClassName={connected ? undefined : "text-stamp"} />
         <ReceiptRow label="VERIFIED" value={verifyLabel} valueClassName={verify.session ? undefined : "text-stamp"} />
         <ReceiptRow label="PAY WITH" value={`USDC · ${WALLET_NETWORK_LABEL}`} />
-        {!railsEnv.worldPayEnabled && <ReceiptRow label="TRANSFER" value={wallet.live ? "Demo transfer · live pay off" : "Demo wallet"} tone="muted" />}
+        <ReceiptRow label="TO" value={`HOUSE POOL · ${truncateAddress(vaultAddress(), 6, 4)}`} tone="muted" />
         <ReceiptRule />
+        <ReceiptRow label="BALANCE" value={connected ? formatUsdc(wallet.usdcBalance) : "···"} tone="muted" />
         <ReceiptRow label="TOTAL" value={`$${premium}.00 USDC`} tone="bold" />
         <ReceiptRow label="BALANCE AFTER" value={connected ? formatUsdc(wallet.usdcBalance - premium) : "···"} tone="muted" />
         <ReceiptRow label="PAYOUT IF HIT" value={`${formatWholeUsd(payout)} USDC`} tone="muted" />
+        {isDemoMoney() && <div className="text-[10px] tracking-[0.14em] text-faint">{DEMO_USDC_LABEL}</div>}
       </PaperCard>
       {payment.status === "failed" && payment.error && (
         <div className="font-mono text-xs text-stamp" role="alert">

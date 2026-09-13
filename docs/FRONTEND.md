@@ -99,13 +99,13 @@ The app is a World Mini App shell as well as a mobile web app.
 - `lib/rails/switching.ts` picks live vs mock **per call**: live when the app id is set and MiniKit is
   installed (or when `NEXT_PUBLIC_RAILS_MODE=http`), mock otherwise. `/#demo` keeps working in a browser.
 
-### Portal setup (Developer Portal, Mini App "LateKid")
+### Portal setup (Developer Portal, Late Gate Mini App)
 
 - **App URL** must be exactly the origin the app is served from. For the tunnel build that is the
   current `https://….trycloudflare.com` hostname; a new tunnel means updating App URL again.
 - Two portal apps: the **World ID** app (new Sandbox account, World ID enabled) feeds IDKit via
   `NEXT_PUBLIC_WORLD_APP_ID` / `NEXT_PUBLIC_WORLD_RP_ID` / `NEXT_PUBLIC_WORLD_ACTION`; the **Mini App**
-  LateKid (legacy portal) is only the MiniKit install id, `NEXT_PUBLIC_MINIKIT_APP_ID` (falls back to the
+  Late Gate Mini App (legacy portal entry) is only the MiniKit install id, `NEXT_PUBLIC_MINIKIT_APP_ID` (falls back to the
   World ID app id when empty).
 - The **RP private signing key never goes in `NEXT_PUBLIC_*`** and is never committed. It belongs on
   the rails (or, for a local test, in server-only `WORLD_RP_SIGNING_KEY`).

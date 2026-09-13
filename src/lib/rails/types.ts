@@ -227,6 +227,8 @@ export type SettledPolicy = {
   outcome: "PAID" | "EXPIRED" | "VOID";
   /** Observed lateness in minutes, when the worker exposes it. */
   observedDelayMinutes?: number;
+  /** USDC payout transfer hash, when the worker paid out. */
+  payoutTxHash?: Hex;
 };
 
 export type WorkerTickResult = {

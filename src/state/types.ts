@@ -29,6 +29,8 @@ export type WalletState = {
   usdcBalance: number;
   /** True when the address came from MiniKit inside World App, false for the demo wallet. */
   live: boolean;
+  /** Live wallet read $0 on chain, so the session runs on the demo USDC ledger. Labelled in the UI. */
+  demoLedger: boolean;
   /** Last connect / command failure, shown once under the header. */
   error: string | null;
 };

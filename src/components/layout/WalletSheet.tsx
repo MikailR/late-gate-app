@@ -4,6 +4,7 @@ import { BrandMark } from "@/components/ui/BrandMark";
 import { Button } from "@/components/ui/Button";
 import { PaperCard, ReceiptRow, ReceiptRule } from "@/components/ui/PaperCard";
 import { WALLET_NETWORK_LABEL } from "@/lib/config/constants";
+import { DEMO_USDC_LABEL } from "@/lib/format/demoMoney";
 import { formatEarnedUsd, formatUsd, formatUsdc, truncateAddress } from "@/lib/format/money";
 import { useApp } from "@/state/AppProvider";
 import { selectPoolPositionUsd } from "@/state/selectors";
@@ -31,13 +32,15 @@ export function WalletSheet() {
 
       <PaperCard serrated>
         <div className="flex flex-col gap-1 py-1">
-          <span className="text-[10px] tracking-[0.16em] text-muted">BALANCE · USDC</span>
+          <span className="text-[10px] tracking-[0.16em] text-muted">BALANCE · USDC · {WALLET_NETWORK_LABEL.toUpperCase()}</span>
           <span className="text-[34px] font-bold leading-none tracking-[-0.02em]">{formatUsd(wallet.usdcBalance)}</span>
+          {wallet.demoLedger && <span className="text-[10px] tracking-[0.14em] text-faint">{DEMO_USDC_LABEL}</span>}
         </div>
         <ReceiptRule />
         <ReceiptRow label="ADDRESS" value={wallet.address ? truncateAddress(wallet.address, 6, 4) : ""} valueClassName="font-bold" />
         <ReceiptRow label="NETWORK" value={WALLET_NETWORK_LABEL} />
-        <ReceiptRow label="SOURCE" value={wallet.live ? "World App · MiniKit" : "Demo wallet"} tone="muted" />
+        <ReceiptRow label="SIGN-IN" value={wallet.live ? "World App · MiniKit" : "Demo wallet"} tone="muted" />
+        <ReceiptRow label="LEDGER" value={wallet.demoLedger ? "Demo USDC for this session" : "On-chain USDC"} tone="muted" />
         {!wallet.live && <ReceiptRow label="LIVE WALLET" value="Open in World App" tone="muted" />}
         <ReceiptRow label="STUBS HELD" value={owned.length} tone="muted" />
         <ReceiptRule />

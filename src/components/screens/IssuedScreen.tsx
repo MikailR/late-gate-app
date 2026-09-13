@@ -7,7 +7,9 @@ import { Stamp } from "@/components/ui/Stamp";
 import { triggerClock } from "@/lib/domain/schedule";
 import { formatSerial, formatShortDate } from "@/lib/format/date";
 import { parseIsoDate } from "@/lib/domain/flightKey";
-import { formatWholeUsd } from "@/lib/format/money";
+import { DEMO_USDC_LABEL, shortTx } from "@/lib/format/demoMoney";
+import { formatWholeUsd, truncateAddress } from "@/lib/format/money";
+import { vaultAddress } from "@/lib/rails";
 import { useApp } from "@/state/AppProvider";
 import { productShort } from "@/state/selectors";
 import { useRequireStub } from "./shared/useRequireStub";
@@ -43,6 +45,11 @@ export function IssuedScreen() {
         <ReceiptRule />
         <ReceiptRow label="PAYOUT" value={formatWholeUsd(stub.payoutUsd)} tone="bold" align="baseline" valueClassName="text-4xl leading-none" />
         <ReceiptRow label="PAID" value={`$${stub.premiumUsd}.00 USDC`} tone="muted" />
+        <ReceiptRule />
+        <ReceiptRow label="TRANSFER" value={`$${stub.premiumUsd}.00 USDC → HOUSE POOL`} tone="muted" />
+        <ReceiptRow label="VAULT" value={truncateAddress(vaultAddress(), 6, 4)} tone="muted" />
+        <ReceiptRow label="TX" value={shortTx(stub.premiumTxHash)} tone="muted" />
+        {stub.simulated && <div className="text-[10px] tracking-[0.14em] text-faint">{DEMO_USDC_LABEL}</div>}
         <div className="barcode" aria-hidden="true" />
       </PaperCard>
       <ScreenFooter delayMs={1100} className="flex gap-2.5">

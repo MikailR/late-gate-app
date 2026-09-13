@@ -6,6 +6,7 @@ import { Screen, ScreenFooter } from "@/components/ui/Screen";
 import { Stamp } from "@/components/ui/Stamp";
 import { DEMO_LATE_MINUTES } from "@/lib/config/constants";
 import { formatSerial } from "@/lib/format/date";
+import { DEMO_USDC_LABEL, isDemoMoney, shortTx } from "@/lib/format/demoMoney";
 import { formatUsdc, formatWholeUsd, truncateAddress } from "@/lib/format/money";
 import { useApp } from "@/state/AppProvider";
 import { productShort } from "@/state/selectors";
@@ -70,6 +71,10 @@ export function PaidScreen() {
             <span className="h-[7px] w-[7px] rounded-full bg-gate" aria-hidden="true" />
             In your wallet now · balance {formatUsdc(state.wallet.usdcBalance)}
           </div>
+          <div className="flex items-baseline justify-between gap-2 text-[10px] tracking-[0.08em] text-muted">
+            <span>HOUSE POOL → WALLET · TX {shortTx(stub.payoutTxHash)}</span>
+          </div>
+          {(stub.simulated || isDemoMoney()) && <div className="text-[10px] tracking-[0.14em] text-faint">{DEMO_USDC_LABEL}</div>}
         </div>
         <Stamp animate="drop" animateDelayMs={1750} className="bg-paper px-2.5 py-1 text-xs">
           SENT

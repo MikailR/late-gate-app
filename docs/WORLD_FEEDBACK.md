@@ -1,4 +1,4 @@
-# World track feedback: Late Gate (LateKid Mini App)
+# World track feedback: Late Gate Mini App
 
 Prize-track notes for the World / World ID judges. The rails repo
 ([MikailR/late-gate](https://github.com/MikailR/late-gate), `FEEDBACK.md`) carries the server side of the
@@ -18,7 +18,7 @@ teams cannot self-enable the flag. We never present a live selfie CTA as working
 
 ## What is demonstrated
 
-- **Mini App shell.** `@worldcoin/minikit-js` 2.x `MiniKitProvider` installs with the LateKid Mini App id
+- **Mini App shell.** `@worldcoin/minikit-js` 2.x `MiniKitProvider` installs with the Late Gate Mini App id
   (`app_6ee0563505d2423eb78b3b69a04714db`). The app opens inside production World App; the same build
   runs in a phone browser on mock adapters (`/#demo`).
 - **MiniKit wallet.** Inside World App, `MiniKit.walletAuth` (SIWE) connects the real wallet and the
@@ -44,7 +44,7 @@ teams cannot self-enable the flag. We never present a live selfie CTA as working
 
 - Browser: open the live URL with `/#demo`, connect the demo wallet, buy a stub. Verify shows the stub
   path; pay is a demo transfer.
-- World App (production): add the live URL as the LateKid Mini App **App URL** in the Developer Portal,
+- World App (production): add the live URL as the Late Gate Mini App **App URL** in the Developer Portal,
   open the Mini App, connect (MiniKit walletAuth), buy a stub. Verify uses the stub path (no Sandbox app),
   pay is a labelled demo transfer.
 - Sandbox (when the invite lands): set `NEXT_PUBLIC_WORLD_VERIFY_MODE=sandbox` and point

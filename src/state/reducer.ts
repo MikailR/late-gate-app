@@ -160,7 +160,7 @@ export function appReducer(state: AppState, action: AppAction): AppState {
     case "SETTLE_PAID": {
       const stub = state.currentStub;
       if (!stub) return navigate(state, "stubs");
-      const settled = { ...stub, status: "PAID" as const, lateByMinutes: action.lateByMinutes };
+      const settled = { ...stub, status: "PAID" as const, lateByMinutes: action.lateByMinutes, payoutTxHash: action.payoutTxHash ?? stub.payoutTxHash };
       return {
         ...navigate(state, "paid"),
         currentStub: settled,
@@ -189,13 +189,16 @@ export function appReducer(state: AppState, action: AppAction): AppState {
       return { ...state, wallet: { ...state.wallet, status: "connecting", error: null } };
 
     case "WALLET_CONNECTED":
-      return { ...state, wallet: { status: "connected", address: action.address, usdcBalance: action.usdcBalance, live: action.live, error: null } };
+      return {
+        ...state,
+        wallet: { status: "connected", address: action.address, usdcBalance: action.usdcBalance, live: action.live, demoLedger: action.demoLedger, error: null },
+      };
 
     case "WALLET_FAILED":
       return { ...state, wallet: { ...state.wallet, status: "disconnected", address: null, error: action.error } };
 
     case "WALLET_DISCONNECTED":
-      return { ...state, wallet: { ...state.wallet, status: "disconnected", address: null, live: false, error: null }, sheetOpen: false };
+      return { ...state, wallet: { ...state.wallet, status: "disconnected", address: null, live: false, demoLedger: false, error: null }, sheetOpen: false };
 
     case "OPEN_SHEET":
       return { ...state, sheetOpen: true };

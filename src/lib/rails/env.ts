@@ -47,7 +47,7 @@ export const railsEnv = {
   worldAppId: process.env.NEXT_PUBLIC_WORLD_APP_ID ?? "",
   worldRpId: process.env.NEXT_PUBLIC_WORLD_RP_ID ?? "",
   /**
-   * Mini App id MiniKit installs with (legacy LateKid portal entry). Falls back
+   * Mini App id MiniKit installs with (legacy portal entry). Falls back
    * to the World ID app id when the two are the same portal app.
    */
   minikitAppId: process.env.NEXT_PUBLIC_MINIKIT_APP_ID || process.env.NEXT_PUBLIC_WORLD_APP_ID || "",

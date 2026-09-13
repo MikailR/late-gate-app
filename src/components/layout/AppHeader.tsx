@@ -42,7 +42,7 @@ export function AppHeader() {
           <span className="flex flex-col items-start leading-none">
             <span className="font-mono text-[13px] font-bold tracking-[0.02em]">{formatUsd(wallet.usdcBalance)}</span>
             <span className="mt-1 font-mono text-[10px] tracking-[0.08em] text-muted">
-              USDC · {truncateAddress(wallet.address, 4, 4)}
+              {wallet.demoLedger ? "DEMO USDC" : "USDC"} · {truncateAddress(wallet.address, 4, 4)}
             </span>
           </span>
           <span className="ml-0.5 text-muted" aria-hidden="true">

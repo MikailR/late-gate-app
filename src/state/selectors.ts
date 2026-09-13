@@ -2,7 +2,7 @@ import { getAirline } from "@/lib/data/airlines";
 import { buildFlightKey, resolveServiceDate, toIsoDate } from "@/lib/domain/flightKey";
 import { payoutUsdForMinutesLate, premiumUsdForProduct } from "@/lib/domain/pricing";
 import { triggerClock } from "@/lib/domain/schedule";
-import type { Airline, OwnedStub, StubProduct } from "@/lib/domain/types";
+import type { Airline, Hex, OwnedStub, StubProduct } from "@/lib/domain/types";
 import { formatShortDate } from "@/lib/format/date";
 import { poolPositionUsd } from "./poolMath";
 import type { AppState } from "./types";
@@ -78,7 +78,7 @@ export function productShort(product: StubProduct): string {
 }
 
 /** Builds the stub record for the current selection once the rails issue a ticket. */
-export function buildCurrentStub(state: AppState, ticketNumber: string): OwnedStub {
+export function buildCurrentStub(state: AppState, ticketNumber: string, transfer?: { txHash: Hex; simulated?: boolean }): OwnedStub {
   const serviceDate = selectServiceDateIso(state);
   return {
     id: `${state.flight.airline}-${state.flight.flightNumber}-${serviceDate}-${state.product}-${state.minutesLate}`,
@@ -94,5 +94,7 @@ export function buildCurrentStub(state: AppState, ticketNumber: string): OwnedSt
     payoutUsd: selectPayoutUsd(state),
     premiumUsd: selectPremiumUsd(state),
     status: "OPEN",
+    premiumTxHash: transfer?.txHash,
+    simulated: transfer?.simulated ?? true,
   };
 }

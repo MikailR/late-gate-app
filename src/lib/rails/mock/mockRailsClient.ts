@@ -206,6 +206,7 @@ export class MockRailsClient implements RailsClient {
       status: "PAID" as const,
       outcome: "PAID" as const,
       observedDelayMinutes: DEMO_LATE_MINUTES,
+      payoutTxHash: randomHex(),
     }));
     const scanned = this.openPolicies.length;
     for (const policy of this.openPolicies) {
