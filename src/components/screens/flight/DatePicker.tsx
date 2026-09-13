@@ -54,6 +54,7 @@ export function DatePicker({ mode, other, onMode, onOther }: DatePickerProps) {
           value={other}
           min={toIsoDate(today)}
           onChange={(event) => onOther(event.target.value)}
+          name="flightDate"
           aria-label="Flight date"
           className="h-[42px] w-full rounded-[10px] border-[1.5px] border-rule bg-paper px-3.5 font-mono text-sm text-ink outline-none animate-row-print focus:border-gate focus:shadow-[0_0_0_3px_var(--color-wash)]"
         />

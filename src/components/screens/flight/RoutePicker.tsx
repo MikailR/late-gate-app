@@ -65,6 +65,7 @@ export function RoutePicker({ origin, dest, editing, query, onEdit, onQuery, onP
             onChange={(event) => onQuery(event.target.value)}
             placeholder={editing === "origin" ? "Search departure airport" : "Search arrival airport"}
             autoComplete="off"
+            name="airportQuery"
             aria-label={editing === "origin" ? "Search departure airport" : "Search arrival airport"}
             className="h-[42px] w-full rounded-[10px] border-[1.5px] border-rule bg-paper px-3.5 text-sm text-ink outline-none focus:border-gate focus:shadow-[0_0_0_3px_var(--color-wash)]"
           />

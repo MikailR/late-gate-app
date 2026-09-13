@@ -46,6 +46,7 @@ export function PoolMoveScreen({ kind }: { kind: PoolMoveKind }) {
           inputMode="decimal"
           autoComplete="off"
           enterKeyHint="done"
+          name="poolAmount"
           aria-label={`${copy.title} amount in USDC`}
           placeholder="0.00"
           value={pool.amountInput}

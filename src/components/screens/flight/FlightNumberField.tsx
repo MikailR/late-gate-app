@@ -38,6 +38,7 @@ export function FlightNumberField({ airline, flightNumber, placeholder, onChange
         inputMode="numeric"
         autoComplete="off"
         enterKeyHint="done"
+        name="flightNumber"
         aria-label="Flight number"
         value={flightNumber}
         placeholder={placeholder}
