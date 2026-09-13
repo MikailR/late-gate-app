@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32" fill="none">
+  <!-- Receipt: paper with a torn bottom edge -->
+  <path d="M7 3.5h18v22.5l-2.25 -1.6 -2.25 1.6 -2.25 -1.6 -2.25 1.6 -2.25 -1.6 -2.25 1.6 -2.25 -1.6L7 26V3.5z" fill="#FFFFFF" stroke="#1A1A1A" stroke-width="1.6" stroke-linejoin="round"/>
+  <!-- Printed rows -->
+  <path d="M10.5 8.5h11M10.5 12h7" stroke="#1A1A1A" stroke-width="1.6" stroke-linecap="round"/>
+  <!-- Gate stamp landing on the receipt -->
+  <g transform="translate(19.5 19) rotate(-12)">
+    <rect x="-7.5" y="-4.5" width="15" height="9" rx="2" fill="#1F4FBF"/>
+    <rect x="-5.5" y="-2.5" width="11" height="5" rx="1" stroke="#FFFFFF" stroke-width="1.2"/>
+  </g>
+</svg>

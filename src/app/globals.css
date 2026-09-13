@@ -149,9 +149,15 @@ body {
   overscroll-behavior-y: none;
 }
 
-button {
-  font: inherit;
-  color: inherit;
+/* Base resets live in the base layer so utilities (text-white on primary CTAs) always win. */
+@layer base {
+  button {
+    font: inherit;
+    color: inherit;
+    background: none;
+    border: 0;
+    padding: 0;
+  }
 }
 
 @layer components {
