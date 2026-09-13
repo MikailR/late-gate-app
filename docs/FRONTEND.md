@@ -103,7 +103,10 @@ The app is a World Mini App shell as well as a mobile web app.
 
 - **App URL** must be exactly the origin the app is served from. For the tunnel build that is the
   current `https://….trycloudflare.com` hostname; a new tunnel means updating App URL again.
-- Public ids go in `NEXT_PUBLIC_WORLD_APP_ID`, `NEXT_PUBLIC_WORLD_RP_ID`, `NEXT_PUBLIC_WORLD_ACTION`.
+- Two portal apps: the **World ID** app (new Sandbox account, World ID enabled) feeds IDKit via
+  `NEXT_PUBLIC_WORLD_APP_ID` / `NEXT_PUBLIC_WORLD_RP_ID` / `NEXT_PUBLIC_WORLD_ACTION`; the **Mini App**
+  LateKid (legacy portal) is only the MiniKit install id, `NEXT_PUBLIC_MINIKIT_APP_ID` (falls back to the
+  World ID app id when empty).
 - The **RP private signing key never goes in `NEXT_PUBLIC_*`** and is never committed. It belongs on
   the rails (or, for a local test, in server-only `WORLD_RP_SIGNING_KEY`).
 

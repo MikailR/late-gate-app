@@ -40,9 +40,17 @@ export const railsEnv = {
   baseUrl: (process.env.NEXT_PUBLIC_RAILS_BASE_URL ?? "").replace(/\/$/, ""),
   /** 4801 = World Chain Sepolia (demo lock). 480 = mainnet, documented only. */
   chainId: readChainId(),
-  /** World Developer Portal ids (public). Empty app id disables every live World path. */
+  /**
+   * World ID app id (new Sandbox portal account, World ID enabled). Used by
+   * IDKit.request. Empty disables every live World path.
+   */
   worldAppId: process.env.NEXT_PUBLIC_WORLD_APP_ID ?? "",
   worldRpId: process.env.NEXT_PUBLIC_WORLD_RP_ID ?? "",
+  /**
+   * Mini App id MiniKit installs with (legacy LateKid portal entry). Falls back
+   * to the World ID app id when the two are the same portal app.
+   */
+  minikitAppId: process.env.NEXT_PUBLIC_MINIKIT_APP_ID || process.env.NEXT_PUBLIC_WORLD_APP_ID || "",
   worldAction: process.env.NEXT_PUBLIC_WORLD_ACTION ?? "late-gate-ticket",
   /**
    * IDKit `environment` string passed to IDKit.request. Default "sandbox"

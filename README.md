@@ -32,7 +32,8 @@ Other scripts: `npm run build`, `npm run start`, `npm run lint`, `npm run typech
 
 ## World Mini App
 
-The app installs MiniKit on load (`NEXT_PUBLIC_WORLD_APP_ID`), so it runs inside World App as the
+The app installs MiniKit on load (`NEXT_PUBLIC_MINIKIT_APP_ID`, the LateKid Mini App; IDKit uses the
+separate World ID app id `NEXT_PUBLIC_WORLD_APP_ID`), so it runs inside World App as the
 Mini App **LateKid** as well as in a phone browser. Inside World App the wallet and World ID paths use
 MiniKit / IDKit (Sandbox); in a browser they stay on the mock adapters.
 
